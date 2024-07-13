@@ -1,0 +1,9 @@
+streamlit
+matplotlib
+plotly
+plotly==4.14.3
+openpyxl==3.0.6
+seaborn
+urlextract
+pandas
+fpdf
