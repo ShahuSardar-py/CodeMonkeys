@@ -1,6 +1,7 @@
 import pandas as pd
 
 def load_and_combine_files(uploaded_files):
+    # Load and combine Excel files into a single DataFrame
     combined_df = pd.DataFrame()
     
     for file in uploaded_files:
@@ -10,21 +11,25 @@ def load_and_combine_files(uploaded_files):
     return combined_df
 
 def drop_unnecessary_columns(df):
+    # Drop specified unnecessary columns from the DataFrame
     columns_to_drop = ['Unproctored programming exam score out of 25', 'DOB', 'College Roll Number']
     df = df.drop(columns=columns_to_drop, errors='ignore')
     return df
 
 def segregate_data(df):
+    # Segregate data into faculty and student DataFrames based on 'Role'
     faculty_df = df[df['Role'] == 'Faculty']
     student_df = df[df['Role'] == 'Student']
     return faculty_df, student_df
 
 def calculate_presence(df):
+    # Calculate counts of 'Present' and 'Absent' in the 'Attendance' column
     present_count = df['Attendance'].value_counts().get('Present', 0)
     absent_count = df['Attendance'].value_counts().get('Absent', 0)
     return present_count, absent_count
 
 def preprocess_data(uploaded_files):
+    # Preprocess data from uploaded Excel files
     combined_df = load_and_combine_files(uploaded_files)
     cleaned_df = drop_unnecessary_columns(combined_df)
     faculty_df, student_df = segregate_data(cleaned_df)
