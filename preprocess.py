@@ -6,9 +6,12 @@ def load_and_combine_files(uploaded_files):
     for file in uploaded_files:
         df = pd.read_excel(file)
         combined_df = pd.concat([combined_df, df], ignore_index=True)
+        
     
     return combined_df
 
+
+        
 def drop_unnecessary_columns(df):
     columns_to_drop = ['Unproctored programming exam score out of 25', 'DOB', 'College Roll Number']
     df = df.drop(columns=columns_to_drop, errors='ignore')
@@ -20,8 +23,8 @@ def segregate_data(df):
     return faculty_df, student_df
 
 def calculate_presence(df):
-    present_count = df['Attendance'].value_counts().get('Present', 0)
-    absent_count = df['Attendance'].value_counts().get('Absent', 0)
+    present_count = df['Present/Absent'].value_counts().get('Present', 0)
+    absent_count = df['Present/Absent'].value_counts().get('Absent', 0)
     return present_count, absent_count
 
 def preprocess_data(uploaded_files):
