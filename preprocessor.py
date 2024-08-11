@@ -1,5 +1,6 @@
 import pandas as pd
 
+#concats the input file
 def combiner(uploaded_files):
     combined_df = pd.DataFrame()
     for file in uploaded_files:
@@ -7,11 +8,13 @@ def combiner(uploaded_files):
         combined_df = pd.concat([combined_df, df], ignore_index=True)
     return combined_df
 
+#drops unwanted columns
 def drop_unnecessary_columns(df):
     columns_to_drop = ['College Roll no','Unproctored programming exam score out of 25', 'DOB']
     df = df.drop(columns=columns_to_drop, errors='ignore')
     return df
 
+#present and absent data
 def present_absent_data(df):
     present_df = df[df['Present/Absent'] == 'Present']
     absent_df = df[df['Present/Absent'] == 'Absent']
@@ -26,6 +29,7 @@ def segregate_data(df):
 def filter_present(df):
     return df[df['Present/Absent'] == 'Present']
 
+#main function 
 def preprocess_data(uploaded_files):
     combined_df = combiner(uploaded_files)
     cleaned_df = drop_unnecessary_columns(combined_df)
