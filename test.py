@@ -3,6 +3,33 @@ import pandas as pd
 import plotly.express as px
 from preprocessor import preprocess_data
 
+
+USER_CREDENTIALS = {"admin": "password123", "user1": "userpassword"}
+
+def login():
+    st.title("Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if USER_CREDENTIALS.get(username) == password:
+            st.session_state["authenticated"] = True
+            st.success(f"Welcome, {username}!")
+        else:
+            st.error("Invalid credentials. Please try again.")
+
+def logout():
+    st.session_state["authenticated"] = False
+    st.info("You have been logged out.")
+
+def check_login():
+    if "authenticated" not in st.session_state:
+        st.session_state["authenticated"] = False
+    if not st.session_state["authenticated"]:
+        login()
+        return False
+    else:
+        return True
+
 # Functions
 def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
     return df[column].value_counts().get(value, 0)
@@ -39,7 +66,9 @@ st.markdown("""
 
 
 # Sidebar - File Uploader
-uploaded_files = st.sidebar.file_uploader(
+if check_login():
+    st.sidebar.button("Logout", on_click=logout)
+    uploaded_files = st.sidebar.file_uploader(
     "Upload the result files",
     accept_multiple_files=True,
     type=["xlsx", "xls"]
@@ -88,19 +117,7 @@ if uploaded_files:
         elite_faculty = (faculty_df['Certificate Type'] == 'Elite').sum()
         elite_student = (student_df['Certificate Type'] == 'Elite').sum()
         
-        st.markdown(f"""
-        <div class="kpi-box">
-            <h2>Elite (Faculty)</h2>
-            <h1>{elite_faculty}</h1>
-        </div>
-        """, unsafe_allow_html=True)
         
-        st.markdown(f"""
-        <div class="kpi-box">
-            <h2>Elite (Students)</h2>
-            <h1>{elite_student}</h1>
-        </div>
-        """, unsafe_allow_html=True)
 
     # Second Column - Graphs
     with col2:
@@ -111,7 +128,7 @@ if uploaded_files:
         top_3_courses = course_counts.head(3)
         other_courses = course_counts.iloc[3:].sum()
         pie_data = top_3_courses._append(pd.Series({'Other': other_courses}))
-        st.divider()
+        
         pie_chart = px.pie(pie_data, values=pie_data.values, names=pie_data.index, title='Top Courses')
         st.plotly_chart(pie_chart, use_container_width=True)
 
