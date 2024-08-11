@@ -86,7 +86,7 @@ else:
         combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
 
         # MAIN DATAFRAME
-        with st.expander("Main Data"):
+        with st.expander("Loaded Data"):
             st.write(main_df)
 
         # Button to generate analysis
@@ -156,7 +156,7 @@ else:
                         InsightZ- NPTEL report generator. 
                         V 1.2.6
                         A robust data analyser and report generator for NPTEL data
-                        Libraries: Streamlit, Pandas, Plotly
+                        ♥
                             
             ''')
                     st.markdown('<a href="https://github.com/ShahuSardar-py/CodeMonkeys" target="_blank">GitHub</a>', unsafe_allow_html=True)
