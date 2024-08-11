@@ -3,182 +3,200 @@ import pandas as pd
 import plotly.express as px
 from preprocessor import preprocess_data
 
-#funtions
-def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
-    return df[column].value_counts().get(value, 0)
-
-
-def course_info(df, column):
-    return df[column].value_counts()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# APP UI 
-st.set_page_config(page_title="Report Automator")
-st.title("NPTEL Report Generator")
-st.write("V 1.2.0")
-
-# SIDE BAR 
-uploaded_files = st.sidebar.file_uploader(
-    "Upload the result files",
-    accept_multiple_files=True,
-    type=["xlsx", "xls"]
-)
-
-# for successful upload
-if uploaded_files:
-    st.write("Upload successful!")
+# Login 
+def login():
+    st.sidebar.title("Login to InsightZ 📊")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
     
-    # preprocessor module function from module 
-    combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
+    if st.sidebar.button("Login Here"):
+        if username == "admin" and password == "040405":  #  hardcoded 
+            st.session_state["logged_in"] = True
+            st.sidebar.success("Login successful!")
+        else:
+            st.sidebar.error("Invalid username or password")
 
-    # # combined dataframe here (with expander)
-    # with st.expander("Combined Academic Year Data"):
-    #     st.write(combined_df)
+# Check if user is logged in
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
 
-    # # Display faculty DataFrame
-    # with st.expander("Faculty Data"):
-    #     st.write(faculty_df)
-
-    # # Display student DataFrame
-    # with st.expander("Student Data"):
-    #     st.write(student_df)
-
-    with st.expander("main DATA"):
-        st.write(main_df)
-
-    # Display summary statistics
-    # summary_data = {
-    #     'Role': ['Faculty', 'Student'],
-    #     'Count': [len(faculty_df), len(student_df)],
-    #     'Elite Certificate': [
-    #         (faculty_df['Certificate Type'] == 'elite').sum(),
-    #         (student_df['Certificate Type'] == 'elite').sum()
-    #     ],
-    #     'Elite+Silver Certificate': [
-    #         (faculty_df['Certificate Type'] == 'elite+silver').sum(),
-    #         (student_df['Certificate Type'] == 'elite+silver').sum()
-    #     ],
-    #     'Average Exam Score': [
-    #         faculty_df['Exam Score'].mean(),
-    #         student_df['Exam Score'].mean()
-    #     ]
-    # }
-    # summary_df = pd.DataFrame(summary_data)
-    # st.write("### Summary Statistics")
-    # st.write(summary_df)
-
-    # Display Plotly histogram for "Department"
-    
-    # 
-    
-    f_no= value_counter(main_df, 'Role', 'faculty')
-    s_no=value_counter(main_df, 'Role', 'student')
-    total_count= (f_no)+(s_no)
-
-    
-
-    st.write("# Report Analysis")
-
-    
-    col1, col2, col3= st.columns(3)
-    with col1:
-        st.header("Total")
-        st.title(total_count)
-    with col2:
-        st.header("faculty")
-        st.title(f_no)
-        
-
-    with col3:
-        st.header("students")
-        st.title(s_no)
-    
-
-
-
-
-
-    elite_faculty= (faculty_df['Certificate Type'] == 'Elite').sum()
-    elite_student= (student_df['Certificate Type'] == 'Elite').sum()
-    ES_faculty= (faculty_df['Certificate Type'] == 'Elite+Silver').sum()
-    ES_student=(student_df['Certificate Type'] == 'Elite+Silver').sum()
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.write("### Elite (faculty)")
-        st.title(elite_faculty)
-    with col2:
-        st.write("### Elite (student)")
-        st.title(elite_student)
-    with col3:
-        st.write("### Elite + Silver (faculty)")
-        st.title(ES_faculty)
-    with col4:
-        st.write("### Elite+Silver (student)")
-        st.title(ES_student)
-        
-
-    
-        
-
-    
-    
-    fig = px.histogram(main_df, x="Department", title='Histogram of Department')
-    st.plotly_chart(fig)
-    
-    summary_data = {
-        'Role': ['Faculty', 'Student'],
-        'Count': [len(faculty_df), len(student_df)],
-        'Elite Certificate': [
-            (faculty_df['Certificate Type'] == 'Elite').sum(),
-            (student_df['Certificate Type'] == 'Elite').sum()
-        ],
-        'Elite+Silver Certificate': [
-            (faculty_df['Certificate Type'] == 'Elite+Silver').sum(),
-            (student_df['Certificate Type'] == 'Elite+Silver').sum()
-        ]
-         
-        }
-    summary_df = pd.DataFrame(summary_data)
-    st.write("### Certifications")
-    st.write(summary_df)
-
-
-
-
-    course_counts = course_info(main_df, 'Course Name')
-    
-    # Prepare data for pie chart
-    top_3 = course_counts.head(3)
-    other_count = course_counts.iloc[3:].sum()
-    pie_data = top_3._append(pd.Series({'Other': other_count}))
-    
-    # Display pie chart for top 3 courses
-    
-    pie_chart = px.pie(pie_data, values=pie_data.values, names=pie_data.index, title='Top Most courses')
-    st.plotly_chart(pie_chart)
-
+if not st.session_state["logged_in"]:
+    login()
 else:
-    st.write("Please upload the files")
+    
+
+    # Functions
+
+    # Counts values
+    def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
+        return df[column].value_counts().get(value, 0)
+
+    # Course counter
+    def course_info(df, column):
+        return df[column].value_counts()
+
+    # APP UI
+
+    st.set_page_config(page_title="Report Automator",
+                       page_icon="📈",
+                       layout="wide")
+
+    # CUSTOM CSS for KPI boxes
+    st.markdown(
+        """
+        <style>
+        .kpi-box {
+            background-color: #262730;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .kpi-box h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+        .kpi-box h2 {
+            font-size: 1.2em;
+            color: #ba042b;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.title("InsightZ - NPTEL Report Generator")
+    st.write("V 1.2.2")
+
+    # SIDEBAR
+    # File uploader. (2 ideal)
+    uploaded_files = st.sidebar.file_uploader(
+        "Upload the result files",
+        accept_multiple_files=True,
+        type=["xlsx", "xls"]
+    )
+
+    # For successful upload
+    if uploaded_files:
+
+        st.sidebar.success("File Upload Successful!")
+
+        # Preprocessed data loaded
+        combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
+
+        # MAIN DATAFRAME
+        with st.expander("Main Data"):
+            st.write(main_df)
+
+        # Button to generate analysis
+        if st.button("Generate Report"):
+
+            # Variables for count
+            st.write("# Analysis Report")
+            st.divider()
+
+            # COLUMN LAYOUT
+            col1, col2, col3 = st.columns([1, 2, 1])
+
+            # Column 1 - KPI for counts
+            with col1:
+                total_enrolled = cleaned_df.shape[0]
+                total_present = value_counter(main_df, 'Role', 'faculty') + value_counter(main_df, 'Role', 'student')
+                faculty_count = value_counter(main_df, 'Role', 'faculty')
+                student_count = value_counter(main_df, 'Role', 'student')
+
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Total Enrolled</h2>
+                    <h1>{total_enrolled}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Total Participants</h2>
+                    <h1>{total_present}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Faculty</h2>
+                    <h1>{faculty_count}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Students</h2>
+                    <h1>{student_count}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Column 2 - Graphs
+            with col2:
+                # HISTOGRAM
+                fig_histogram = px.histogram(main_df, x="Department", title='Department wise enrollment')
+                st.plotly_chart(fig_histogram, use_container_width=True)
+
+                st.divider()
+
+                # PIE CHART
+                course_counts = course_info(main_df, 'Course Name')
+                top_3_courses = course_counts.head(3)
+                other_courses = course_counts.iloc[3:].sum()
+                pie_data = top_3_courses._append(pd.Series({'Other': other_courses}))
+
+                pie_chart = px.pie(pie_data, values=pie_data.values, names=pie_data.index, title='Top Courses')
+                st.plotly_chart(pie_chart, use_container_width=True)
+
+                with st.expander('About', expanded=True):
+                    st.caption('''
+                        InsightZ- NPTEL report generator. 
+                        V 1.2.6
+                        A robust data analyser and report generator for NPTEL data
+                        Libraries: Streamlit, Pandas, Plotly
+                            
+            ''')
+                    st.markdown('<a href="https://github.com/ShahuSardar-py/CodeMonkeys" target="_blank">GitHub</a>', unsafe_allow_html=True)
+
+                    
+
+            # Column 3 - Certification KPIs
+            with col3:
+                st.caption('Certification')
+
+                elite_faculty = (faculty_df['Certificate Type'] == 'Elite').sum()
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Elite (Faculty)</h2>
+                    <h1>{elite_faculty}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+                elite_student = (student_df['Certificate Type'] == 'Elite').sum()
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Elite (Student)</h2>
+                    <h1>{elite_student}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+                ES_faculty = (faculty_df['Certificate Type'] == 'Elite+Silver').sum()
+                ES_student = (student_df['Certificate Type'] == 'Elite+Silver').sum()
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Elite+Silver (Faculty)</h2>
+                    <h1>{ES_faculty}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <h2>Elite+Silver (Student)</h2>
+                    <h1>{ES_student}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+
+    else:
+        st.write("Please upload the files")

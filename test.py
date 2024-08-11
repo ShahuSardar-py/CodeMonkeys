@@ -1,115 +1,155 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from preprocessor import preprocess_data
 
-# Functions here:
+# Functions
+def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
+    return df[column].value_counts().get(value, 0)
 
-# Excel combiner for sem 1 and 2 
-def combine_excel(file1, file2):
-    df1 = pd.read_excel(file1, engine='openpyxl')
-    df2 = pd.read_excel(file2, engine='openpyxl')
-    combined_df = pd.concat([df1, df2], ignore_index=True)
-    return combined_df
+def course_info(df, column):
+    return df[column].value_counts()
 
-def drop_columns(df, columns_to_drop):
-    return df.drop(columns=columns_to_drop, errors='ignore')
-
-def role_filter(df):
-    faculty_df = df[df['Role'] == 'faculty']
-    student_df = df[df['Role'] == 'student']
-    return faculty_df, student_df
-
-def summary(faculty_df, student_df):
-    summary_data = {
-        'Role': ['Faculty', 'Student'],
-        'Elite + Silver': [
-            (faculty_df['Certificate Type'] == 'Elite+Silver').sum(),
-            (student_df['Certificate Type'] == 'Elite+Silver').sum()
-        ],
-        'Elite Certificate': [
-            (faculty_df['Certificate Type'] == 'Elite').sum(),
-            (student_df['Certificate Type'] == 'Elite').sum()
-        ],
-        'Successfully completed': [
-            (faculty_df['Certificate Type'] == 'Successfully completed').sum(),
-            (student_df['Certificate Type'] == 'Successfully completed').sum()
-        ],
-        'No Certificate': [
-            (faculty_df['Certificate Type'] == 'No Certificate').sum(),
-            (student_df['Certificate Type'] == 'No Certificate').sum()
-        ],
-        'Average Exam Score': [
-            faculty_df['Final Score'].mean(),
-            student_df['Final Score'].mean()
-        ]
-    }
-    summary_df = pd.DataFrame(summary_data)
-    return summary_df
-
-def dept_histogram(df, column):
-    fig = px.bar(df, x=column, title=f'Histogram of {column}')
-    st.plotly_chart(fig)
-
-# The page
-st.set_page_config(page_title="Report Automator")
+# Custom CSS for KPI boxes
+st.set_page_config(page_title="NPTEL Report Automator", layout="wide")
 st.title("NPTEL Report Generator")
-st.write("V 1.1.0")
+st.write("V 1.2.0")
+st.markdown("""
+    <style>
+    .kpi-box {
+        background-color: #f1f3f6;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .kpi-box h1 {
+        font-size: 2.5em;
+        margin: 0;
+    }
+    .kpi-box h2 {
+        font-size: 1.2em;
+        color: #555;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# File uploader. Using 2 to separate sem 1 and 2.
-uploaded_file1 = st.sidebar.file_uploader("Upload first Excel file", type=["xlsx", "xls"])
-uploaded_file2 = st.sidebar.file_uploader("Upload second Excel file", type=["xlsx", "xls"])
+# APP UI 
 
-if uploaded_file1 is not None and uploaded_file2 is not None:
+
+# Sidebar - File Uploader
+uploaded_files = st.sidebar.file_uploader(
+    "Upload the result files",
+    accept_multiple_files=True,
+    type=["xlsx", "xls"]
+)
+
+# Processing the uploaded files
+if uploaded_files:
     st.write("Upload successful!")
     
+    # Preprocess the data
+    combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
     
-    st.markdown("----")
-    st.write("# Analysis Report")
+    with st.expander("Main Data"):
+        st.write(main_df)
 
-    summary_df = summary(faculty_df, student_df)
-    st.write("#### Summary Statistics")
-    st.write(summary_df)
+    # Create layout with three columns
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-    st.write("#### Department Histogram")
-    dept_histogram(combined_df, "Department")
+    # First Column - KPIs
+    with col1:
+        total_count = value_counter(main_df, 'Role', 'faculty') + value_counter(main_df, 'Role', 'student')
+        faculty_count = value_counter(main_df, 'Role', 'faculty')
+        student_count = value_counter(main_df, 'Role', 'student')
 
-    department_counts = combined_df['Department'].value_counts().reset_index()
-    department_counts.columns = ['Department', 'Count']
-    max_count = department_counts['Count'].max()
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Total Participants</h2>
+            <h1>{total_count}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Faculty</h1>
+            <h1>{faculty_count}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Students</h2>
+            <h1>{student_count}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        elite_faculty = (faculty_df['Certificate Type'] == 'Elite').sum()
+        elite_student = (student_df['Certificate Type'] == 'Elite').sum()
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Elite (Faculty)</h2>
+            <h1>{elite_faculty}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Elite (Students)</h2>
+            <h1>{elite_student}</h1>
+        </div>
+        """, unsafe_allow_html=True)
 
+    # Second Column - Graphs
+    with col2:
+        fig_histogram = px.histogram(main_df, x="Department", title='Department Distribution')
+        st.plotly_chart(fig_histogram, use_container_width=True)
+        
+        course_counts = course_info(main_df, 'Course Name')
+        top_3_courses = course_counts.head(3)
+        other_courses = course_counts.iloc[3:].sum()
+        pie_data = top_3_courses._append(pd.Series({'Other': other_courses}))
+        st.divider()
+        pie_chart = px.pie(pie_data, values=pie_data.values, names=pie_data.index, title='Top Courses')
+        st.plotly_chart(pie_chart, use_container_width=True)
 
+    # Third Column - Certification KPIs
+    with col3:
+        ES_faculty = (faculty_df['Certificate Type'] == 'Elite+Silver').sum()
+        ES_student = (student_df['Certificate Type'] == 'Elite+Silver').sum()
+
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Elite + Silver (Faculty)</h2>
+            <h1>{ES_faculty}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Elite + Silver (Students)</h2>
+            <h1>{ES_student}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+        fdp_eligible = (faculty_df['FDP Eligible'] == 'Yes').sum()
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>FDP Eligible Faculty</h2>
+            <h1>{fdp_eligible}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        toppers = (main_df['Topper'] == 'Yes').sum()
+        
+        st.markdown(f"""
+        <div class="kpi-box">
+            <h2>Top Performers</h2>
+            <h1>{toppers}</h1>
+        </div>
+        """, unsafe_allow_html=True)
 else:
-    st.write("Please upload two files")
-
-
-
-#EXTRA DATA 
-#def combine_file(files):
-#    combined_df = pd.DataFrame()
-#    for i, file in enumerate(files):
-#        df = pd.read_excel(file)
-#       if i > 0:
-#            df.columns = combined_df.columns  
-#        combined_df = pd.concat([combined_df, df], ignore_index=True)
-#   return combined_df
-
-#file uplaoder in the sidebar
-
-#files = st.sidebar.file_uploader(
-#    "Upload the result files",
-#    accept_multiple_files=True,
-#    type=["xlsx", "xls"]
-#
-
-
-#if files:
-#    for file in files:
-#        file_container = st.expander(
-#            f"File name: {file.name} ({file.size})"
-#        )
-#        data = io.BytesIO(file.getbuffer())
-#       df = pd.read_excel(data, engine='openpyxl')
-#        file_container.write(df)
-
-#    st.write("upload success!")
-#    combined_df = combine_file(files)
+    st.write("Please upload the files")
