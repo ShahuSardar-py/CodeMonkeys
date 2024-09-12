@@ -10,7 +10,7 @@ def login():
     password = st.sidebar.text_input("Password", type="password")
     
     if st.sidebar.button("Login Here"):
-        if username == "admin" and password == "040405":  #  hardcoded 
+        if username == "admin" and password == "040405":  #  hardcoded - 1USER ONLY
             st.session_state["logged_in"] = True
             st.sidebar.success("Login successful!")
         else:
