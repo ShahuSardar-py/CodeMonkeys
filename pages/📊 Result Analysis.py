@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from preprocessor import preprocess_data
+from modules.preprocessor import preprocess_data
 
 # Functions
 
@@ -175,4 +175,4 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
 else:
-    st.write("Please upload the files")
+    st.write("Please upload your files in the sidebar")
