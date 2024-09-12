@@ -3,28 +3,6 @@ import pandas as pd
 import plotly.express as px
 from preprocessor import preprocess_data
 
-# Login 
-def login():
-    st.sidebar.title("Login to InsightZ 📊")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-    
-    if st.sidebar.button("Login Here"):
-        if username == "admin" and password == "040405":  #  hardcoded - 1USER ONLY
-            st.session_state["logged_in"] = True
-            st.sidebar.success("Login successful!")
-        else:
-            st.sidebar.error("Invalid username or password")
-
-# Check if user is logged in
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-
-if not st.session_state["logged_in"]:
-    login()
-else:
-    
-
 # Functions
 
 # Counts values
@@ -46,7 +24,7 @@ st.markdown(
     """
     <style>
     .kpi-box {
-        background-color: #141424;
+        background-color: #4a4e69;
         padding: 20px;
         border-radius: 10px;
         text-align: center;
@@ -59,7 +37,7 @@ st.markdown(
     }
     .kpi-box h2 {
         font-size: 1.2em;
-        color: #e6e6e6;
+        color: #dedede;
     }
     </style>
     """,
