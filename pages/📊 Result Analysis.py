@@ -44,8 +44,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("InsightZ - NPTEL Report Generator")
-st.write("V 1.2.2")
+st.title("InsightZ Result Analyser")
+st.write("V 1.3.0")
 
 # SIDEBAR
 # File uploader. (2 ideal)
