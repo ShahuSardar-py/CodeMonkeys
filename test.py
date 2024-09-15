@@ -64,35 +64,30 @@ if uploaded_files:
     # Preprocessed data loaded
     combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
 
-    # Initial Loaded Data (General Report Table)
-    st.write("### General Loaded Data")
-    st.write(main_df)
-
     # Sidebar for department selection
     if 'Department' in main_df.columns:
         departments = ["All Departments"] + list(main_df['Department'].unique())
         selected_department = st.sidebar.selectbox("Filter by Department", departments)
 
-        # Filter data based on department selection
-        if selected_department != "All Departments":
-            filtered_df = main_df[main_df['Department'] == selected_department]
-            st.write(f"### Loaded Data for Department: {selected_department}")
-            st.write(filtered_df)
+        if selected_department == "All Departments":
+            # Show general loaded data inside an expander if "All Departments" is selected
+            with st.expander("General Loaded Data"):
+                st.write(main_df)
 
-            # Hide the general report when a department is selected
-            main_df = filtered_df
-        
-        # Now, generate the KPIs and charts based on filtered data (or general data)
-        total_enrolled = main_df.shape[0]
-        total_present = value_counter(main_df, 'Role', 'faculty') + value_counter(main_df, 'Role', 'student')
-        faculty_count = value_counter(main_df, 'Role', 'faculty')
-        student_count = value_counter(main_df, 'Role', 'student')
+        # Filter data based on department selection (for KPIs and charts)
+        filtered_df = main_df[main_df['Department'] == selected_department] if selected_department != "All Departments" else main_df
+
+        # Generate the KPIs and charts based on filtered or general data
+        total_enrolled = filtered_df.shape[0]
+        total_present = value_counter(filtered_df, 'Role', 'faculty') + value_counter(filtered_df, 'Role', 'student')
+        faculty_count = value_counter(filtered_df, 'Role', 'faculty')
+        student_count = value_counter(filtered_df, 'Role', 'student')
 
         # Additional KPIs for Elite and Silver Certification
-        elite_faculty = certification_counter(main_df[main_df['Role'] == 'faculty'], 'Elite')
-        elite_student = certification_counter(main_df[main_df['Role'] == 'student'], 'Elite')
-        elite_silver_faculty = certification_counter(main_df[main_df['Role'] == 'faculty'], 'Elite+Silver')
-        elite_silver_student = certification_counter(main_df[main_df['Role'] == 'student'], 'Elite+Silver')
+        elite_faculty = certification_counter(filtered_df[filtered_df['Role'] == 'faculty'], 'Elite')
+        elite_student = certification_counter(filtered_df[filtered_df['Role'] == 'student'], 'Elite')
+        elite_silver_faculty = certification_counter(filtered_df[filtered_df['Role'] == 'faculty'], 'Elite+Silver')
+        elite_silver_student = certification_counter(filtered_df[filtered_df['Role'] == 'student'], 'Elite+Silver')
 
         col1, col2, col3 = st.columns([1, 2, 1])
 
@@ -126,10 +121,10 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
         with col2:
-            fig_histogram = px.histogram(main_df, x="Department", title=f'Department wise enrollment for {selected_department}')
+            fig_histogram = px.histogram(filtered_df, x="Department", title='Department wise enrollment')
             st.plotly_chart(fig_histogram, use_container_width=True)
 
-            course_counts = course_info(main_df, 'Course Name')
+            course_counts = course_info(filtered_df, 'Course Name')
             top_3_courses = course_counts.head(3)
             other_courses = course_counts.iloc[3:].sum()
             pie_data = top_3_courses._append(pd.Series({'Other': other_courses}))
