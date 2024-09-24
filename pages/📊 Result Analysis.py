@@ -5,7 +5,7 @@ from modules.preprocessor import preprocess_data
 
 # Functions
 
-# Counts values
+# Counts values based on column and condition
 def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
     return df[column].value_counts().get(value, 0)
 
@@ -13,9 +13,13 @@ def value_counter(df: pd.DataFrame, column: str, value: str) -> int:
 def course_info(df, column):
     return df[column].value_counts()
 
-# APP UI
+# Certificate counts based on type
+def certification_counter(df, certificate_type: str):
+    return (df['Certificate Type'] == certificate_type).sum()
 
-st.set_page_config(page_title="Report Automator",
+# APP UI starts here
+
+st.set_page_config(page_title="InsightZ - NPTEL Report Generator",
                    page_icon="📈",
                    layout="wide")
 
@@ -24,7 +28,7 @@ st.markdown(
     """
     <style>
     .kpi-box {
-        background-color: #4a4e69;
+        background-color: #141424;
         padding: 20px;
         border-radius: 10px;
         text-align: center;
@@ -37,53 +41,57 @@ st.markdown(
     }
     .kpi-box h2 {
         font-size: 1.2em;
-        color: #dedede;
+        color: #e6e6e6;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.title("InsightZ Result Analyser")
-st.write("V 1.3.0")
+st.title("InsightZ - NPTEL Report Generator")
+st.write("V 1.2.2")
 
 # SIDEBAR
-# File uploader. (2 ideal)
 uploaded_files = st.sidebar.file_uploader(
-    "Upload the result files",
-    accept_multiple_files=True,
+    "Upload the result files", 
+    accept_multiple_files=True, 
     type=["xlsx", "xls"]
 )
 
-# For successful upload
 if uploaded_files:
-
     st.sidebar.success("File Upload Successful!")
 
     # Preprocessed data loaded
     combined_df, cleaned_df, main_df, absent_df, faculty_df, student_df = preprocess_data(uploaded_files)
 
-    # MAIN DATAFRAME
-    with st.expander("Loaded Data"):
-        st.write(main_df)
+    # Sidebar for department selection
+    if 'Department' in main_df.columns:
+        departments = ["All Departments"] + list(main_df['Department'].unique())
+        selected_department = st.sidebar.selectbox("Filter by Department", departments)
 
-    # Button to generate analysis
-    if st.button("Generate Report"):
+        if selected_department == "All Departments":
+            # Show general loaded data inside an expander if "All Departments" is selected
+            with st.expander("General Loaded Data"):
+                st.write(main_df)
 
-        # Variables for count
-        st.write("# Analysis Report")
-        st.divider()
+        # Filter data based on department selection (for KPIs and charts)
+        filtered_df = main_df[main_df['Department'] == selected_department] if selected_department != "All Departments" else main_df
 
-        # COLUMN LAYOUT
+        # Generate the KPIs and charts based on filtered or general data
+        total_enrolled = filtered_df.shape[0]
+        total_present = value_counter(filtered_df, 'Role', 'faculty') + value_counter(filtered_df, 'Role', 'student')
+        faculty_count = value_counter(filtered_df, 'Role', 'faculty')
+        student_count = value_counter(filtered_df, 'Role', 'student')
+
+        # Additional KPIs for Elite and Silver Certification
+        elite_faculty = certification_counter(filtered_df[filtered_df['Role'] == 'faculty'], 'Elite')
+        elite_student = certification_counter(filtered_df[filtered_df['Role'] == 'student'], 'Elite')
+        elite_silver_faculty = certification_counter(filtered_df[filtered_df['Role'] == 'faculty'], 'Elite+Silver')
+        elite_silver_student = certification_counter(filtered_df[filtered_df['Role'] == 'student'], 'Elite+Silver')
+
         col1, col2, col3 = st.columns([1, 2, 1])
 
-        # Column 1 - KPI for counts
         with col1:
-            total_enrolled = cleaned_df.shape[0]
-            total_present = value_counter(main_df, 'Role', 'faculty') + value_counter(main_df, 'Role', 'student')
-            faculty_count = value_counter(main_df, 'Role', 'faculty')
-            student_count = value_counter(main_df, 'Role', 'student')
-
             st.markdown(f"""
             <div class="kpi-box">
                 <h2>Total Enrolled</h2>
@@ -112,23 +120,17 @@ if uploaded_files:
             </div>
             """, unsafe_allow_html=True)
 
-        # Column 2 - Graphs
         with col2:
-            # HISTOGRAM
-            fig_histogram = px.histogram(main_df, x="Department", title='Department wise enrollment')
+            fig_histogram = px.histogram(filtered_df, x="Department", title='Department wise enrollment')
             st.plotly_chart(fig_histogram, use_container_width=True)
 
-            st.divider()
-
-            # PIE CHART
-            course_counts = course_info(main_df, 'Course Name')
+            course_counts = course_info(filtered_df, 'Course Name')
             top_3_courses = course_counts.head(3)
             other_courses = course_counts.iloc[3:].sum()
             pie_data = top_3_courses._append(pd.Series({'Other': other_courses}))
 
             pie_chart = px.pie(pie_data, values=pie_data.values, names=pie_data.index, title='Top Courses')
             st.plotly_chart(pie_chart, use_container_width=True)
-
             with st.expander('About', expanded=True):
                 st.caption('''
                     InsightZ- NPTEL report generator. 
@@ -139,11 +141,7 @@ if uploaded_files:
         ''')
                 st.markdown('<a href="https://github.com/ShahuSardar-py/CodeMonkeys" target="_blank">GitHub</a>', unsafe_allow_html=True)
 
-        # Column 3 - Certification KPIs
         with col3:
-            st.caption('Certification')
-
-            elite_faculty = (faculty_df['Certificate Type'] == 'Elite').sum()
             st.markdown(f"""
             <div class="kpi-box">
                 <h2>Elite (Faculty)</h2>
@@ -151,7 +149,6 @@ if uploaded_files:
             </div>
             """, unsafe_allow_html=True)
 
-            elite_student = (student_df['Certificate Type'] == 'Elite').sum()
             st.markdown(f"""
             <div class="kpi-box">
                 <h2>Elite (Student)</h2>
@@ -159,20 +156,19 @@ if uploaded_files:
             </div>
             """, unsafe_allow_html=True)
 
-            ES_faculty = (faculty_df['Certificate Type'] == 'Elite+Silver').sum()
-            ES_student = (student_df['Certificate Type'] == 'Elite+Silver').sum()
             st.markdown(f"""
             <div class="kpi-box">
                 <h2>Elite+Silver (Faculty)</h2>
-                <h1>{ES_faculty}</h1>
+                <h1>{elite_silver_faculty}</h1>
             </div>
             """, unsafe_allow_html=True)
+
             st.markdown(f"""
             <div class="kpi-box">
                 <h2>Elite+Silver (Student)</h2>
-                <h1>{ES_student}</h1>
+                <h1>{elite_silver_student}</h1>
             </div>
             """, unsafe_allow_html=True)
 
 else:
-    st.write("Please upload your files in the sidebar")
+    st.write("Please upload the files")
