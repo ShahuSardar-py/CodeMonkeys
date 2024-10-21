@@ -49,7 +49,7 @@ st.markdown(
 )
 
 st.title("InsightZ - NPTEL Report Generator")
-st.write("V 1.2.2")
+st.write("V 2.0.0")
 
 # SIDEBAR
 uploaded_files = st.sidebar.file_uploader(
@@ -171,4 +171,5 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
 else:
-    st.write("Please upload the files")
+    st.write("Please upload the files in the side bar")
+    
