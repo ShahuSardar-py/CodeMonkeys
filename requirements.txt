@@ -12,8 +12,9 @@ backoff==2.2.1
 bcrypt==4.1.2
 beautifulsoup4==4.12.2
 blinker==1.7.0
-Bottleneck @ file:///C:/b/abs_f7un855idq/croot/bottleneck_1709069969633/work
-Brotli @ file:///C:/b/abs_3d36mno480/croot/brotli-split_1714483178642/work
+Bottleneck
+Brotli
+mkl-fft
 bs4==0.0.1
 build==1.2.1
 cachetools==5.3.2
@@ -24,7 +25,7 @@ charset-normalizer==3.3.2
 chroma-hnswlib==0.7.3
 chromadb==0.4.24
 click==8.1.7
-colorama @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/colorama_1699472650914/work
+colorama 
 coloredlogs==15.0.1
 comm==0.2.2
 containers==0.0.4
@@ -104,8 +105,8 @@ marshmallow==3.21.1
 matplotlib==3.8.2
 matplotlib-inline==0.1.7
 mdurl==0.1.2
-mkl-fft @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/mkl_fft_1699473528480/work
-mkl-random @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/mkl_random_1699473588250/work
+mkl-fft 
+mkl-random 
 mkl-service==2.4.0
 mmh3==4.1.0
 monotonic==1.6
@@ -115,7 +116,7 @@ mypy-extensions==1.0.0
 nest-asyncio==1.6.0
 networkx==3.3
 nltk==3.8.1
-numexpr @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/numexpr_1699503421264/work
+numexpr 
 numpy==1.26.4
 oauthlib==3.2.2
 onnxruntime==1.17.3
@@ -237,7 +238,7 @@ websocket-client==1.7.0
 websockets==11.0.3
 Werkzeug==3.0.4
 wheel==0.43.0
-win-inet-pton @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/win_inet_pton_1699472992992/work
+win-inet-pton 
 wrapt==1.16.0
 wsproto==1.2.0
 yarl==1.9.4
