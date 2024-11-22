@@ -4,29 +4,26 @@ st.set_page_config(
     page_icon="📈",
 )
 
-st.write("# InsightZ | NPTEL Report Generator")
+st.title("InsightZ | Automated NPTEL Report Generator")
+st.divider()
 
-st.sidebar.success("Select App")
+st.sidebar.success("Select app")
+
+st.header('How to use this app:')
 
 st.markdown(
     """
-    Your one-stop app for turning raw NPTEL results into beautiful, insightful reports. Upload, analyze, and visualize all your academic data in just a few clicks!
+    How to Use This App
 
-    How to Use This App:
-
-    ◻ Upload Your Files
+    :green[Upload Your Files]\n
     Head to the sidebar and upload your NPTEL result files in .xlsx or .xls format.
 
-    ◻ View the Main Data
-    After the files are successfully uploaded, expand the "Main Data" section to see the cleaned and combined data.
+    :green[View the Main Data]\n
+    After the files are successfully uploaded, expand the "Main Data" section to see your cleaned and combined data.
 
-    ◻ Generate Your Report
-    Click the "Generate Report" button to automatically create visual report.
+    :green[Generate Your Report]\n
+    Click the :blue["Generate Report"] button to automatically create visual report.
 
-
-
-    ◻ Export Your Report
-    (Coming Soon!) You’ll be able to export the entire dashboard, including graphs, as a PDF.
 """
 )
 
@@ -54,7 +51,7 @@ text-align: center;
 }
 </style>
 <div class="footer">
-<p>Developed for Deptartment of Data Science & Cyber Security By  <a style='display: block; text-align: center;' href="https://github.com/ShahuSardar-py/" target="_blank">NekoDevs</a></p>
+<p>Developed By  Yogesh Mokasare</p>
 </div>
 """
 st.markdown(footer,unsafe_allow_html=True)

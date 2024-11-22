@@ -10,7 +10,7 @@ def combiner(uploaded_files):
 
 #drops unwanted columns
 def drop_unnecessary_columns(df):
-    columns_to_drop = ['College Roll no','Unproctored programming exam score out of 25', 'DOB']
+    columns_to_drop = ['College Roll no','Unproctored programming exam score out of 25', 'DOB', 'Email Id']
     df = df.drop(columns=columns_to_drop, errors='ignore')
     return df
 

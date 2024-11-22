@@ -139,7 +139,7 @@ if uploaded_files:
                     ♥
                         
         ''')
-                st.markdown('<a href="https://github.com/ShahuSardar-py/CodeMonkeys" target="_blank">GitHub</a>', unsafe_allow_html=True)
+                
 
         with col3:
             st.markdown(f"""
